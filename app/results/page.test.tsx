@@ -3,6 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import ResultsPage from "./page";
 
+const VALID_EVIDENCE = {
+  cpi: "둔화세 지속",
+  usRate: "동결 기조 유지",
+  krRate: "동결 기조 유지",
+  usdKrw: "안정세",
+  sp500: "상승 둔화",
+  nasdaq: "상승 둔화",
+  kospi: "박스권",
+};
+
 describe("Results page", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -20,12 +30,13 @@ describe("Results page", () => {
     expect(screen.getByText("오늘의 계절을 판정하는 중...")).toBeInTheDocument();
   });
 
-  it("shows the judged season and evidence once the fetch resolves", async () => {
+  it("shows the judged season, all 7 indicator lines, summary and asset note once the fetch resolves", async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: async () => ({
         season: "가을",
-        evidence: { cpi: "둔화세 지속", rate: "동결 기조 유지", index: "상승 둔화" },
+        evidence: VALID_EVIDENCE,
+        summary: "물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다.",
         assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
       }),
     });
@@ -34,8 +45,12 @@ describe("Results page", () => {
 
     await waitFor(() => expect(screen.getByText("가을")).toBeInTheDocument());
     expect(screen.getByText(/둔화세 지속/)).toBeInTheDocument();
-    expect(screen.getByText(/동결 기조 유지/)).toBeInTheDocument();
-    expect(screen.getByText(/상승 둔화/)).toBeInTheDocument();
+    expect(screen.getByText(/안정세/)).toBeInTheDocument();
+    expect(screen.getAllByText(/상승 둔화/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/박스권/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다\./)
+    ).toBeInTheDocument();
     expect(screen.getByText(/가치주·에너지 섹터가 상대적으로 견조합니다\./)).toBeInTheDocument();
   });
 
@@ -44,7 +59,8 @@ describe("Results page", () => {
       ok: true,
       json: async () => ({
         season: "봄",
-        evidence: { cpi: "안정", rate: "인하 기대", index: "상승 시작" },
+        evidence: VALID_EVIDENCE,
+        summary: "요약",
         assetNote: "성장주가 주목받는 경향이 있습니다.",
       }),
     });
@@ -85,7 +101,8 @@ describe("Results page", () => {
       ok: true,
       json: async () => ({
         season: "겨울",
-        evidence: { cpi: "상승", rate: "인상", index: "하락" },
+        evidence: VALID_EVIDENCE,
+        summary: "요약",
         assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
       }),
     });

@@ -3,15 +3,21 @@ import type { Season, SeasonResult } from "@/types/season";
 
 const SEASONS: Season[] = ["봄", "여름", "가을", "겨울"];
 
+const EVIDENCE_FIELDS = ["cpi", "usRate", "krRate", "usdKrw", "sp500", "nasdaq", "kospi"] as const;
+
 // 불변 규칙(spec.md): 종목명·매수/매도 시그널·목표가는 어떤 경로로도 표시되지 않는다.
 // 프롬프트 지시만으로는 LLM이 grounding 검색 결과에 딸려온 표현을 그대로 옮길 수 있으므로,
 // 응답을 반환하기 전 서버에서 한 번 더 걸러낸다 (fail closed: 하나라도 걸리면 응답 자체를 무효로 처리).
 const PROHIBITED_TERMS = ["매수", "매도", "목표가"];
 
-const PROMPT = `당신은 매크로 경제 리포터입니다. 오늘 날짜 기준으로 웹 검색을 통해 다음 3개 지표의 최신 추세를 확인하세요:
+const PROMPT = `당신은 매크로 경제 리포터입니다. 오늘 날짜 기준으로 웹 검색을 통해 다음 7개 지표의 최신 추세를 확인하세요:
 1. 미국 CPI(소비자물가지수) 추세
 2. 미국채 10년물 금리 추세
-3. S&P500 등 주요 지수 추세
+3. 한국채 10년물 금리 추세
+4. 원달러 환율(USD/KRW) 추세
+5. S&P500 지수 추세
+6. 나스닥 지수 추세
+7. 코스피 지수 추세
 
 확인한 내용을 바탕으로 현재 매크로 국면을 아래 4계절 중 하나로 판정하세요:
 - 봄: 회복기 — 물가 안정 + 금리 하락 기대 + 지수 상승 시작
@@ -26,9 +32,14 @@ const PROMPT = `당신은 매크로 경제 리포터입니다. 오늘 날짜 기
   "season": "봄" | "여름" | "가을" | "겨울" 중 하나,
   "evidence": {
     "cpi": "CPI 추세 한 줄 요약",
-    "rate": "금리 추세 한 줄 요약",
-    "index": "주요 지수 추세 한 줄 요약"
+    "usRate": "미국채 10년물 금리 추세 한 줄 요약",
+    "krRate": "한국채 10년물 금리 추세 한 줄 요약",
+    "usdKrw": "원달러 환율 추세 한 줄 요약",
+    "sp500": "S&P500 추세 한 줄 요약",
+    "nasdaq": "나스닥 추세 한 줄 요약",
+    "kospi": "코스피 추세 한 줄 요약"
   },
+  "summary": "위 7개 지표를 종합해 왜 이 계절로 판정했는지 두세 문장으로 설명",
   "assetNote": "판정된 계절의 자산군 경향 한두 문장 (종목명·시그널·목표가 금지)"
 }`;
 
@@ -45,15 +56,16 @@ function isSeasonResultShape(value: unknown): value is SeasonResult {
   if (!SEASONS.includes(v.season as Season)) return false;
   if (typeof v.evidence !== "object" || v.evidence === null) return false;
   const evidence = v.evidence as Record<string, unknown>;
-  if (typeof evidence.cpi !== "string") return false;
-  if (typeof evidence.rate !== "string") return false;
-  if (typeof evidence.index !== "string") return false;
+  for (const field of EVIDENCE_FIELDS) {
+    if (typeof evidence[field] !== "string") return false;
+  }
+  if (typeof v.summary !== "string") return false;
   if (typeof v.assetNote !== "string") return false;
   return true;
 }
 
 function containsProhibitedTerms(result: SeasonResult): boolean {
-  const text = [result.evidence.cpi, result.evidence.rate, result.evidence.index, result.assetNote].join(
+  const text = [...EVIDENCE_FIELDS.map((field) => result.evidence[field]), result.summary, result.assetNote].join(
     " "
   );
   return PROHIBITED_TERMS.some((term) => text.includes(term));
@@ -96,9 +108,14 @@ export async function getSeasonResult(): Promise<SeasonResult> {
     season: parsed.season,
     evidence: {
       cpi: parsed.evidence.cpi,
-      rate: parsed.evidence.rate,
-      index: parsed.evidence.index,
+      usRate: parsed.evidence.usRate,
+      krRate: parsed.evidence.krRate,
+      usdKrw: parsed.evidence.usdKrw,
+      sp500: parsed.evidence.sp500,
+      nasdaq: parsed.evidence.nasdaq,
+      kospi: parsed.evidence.kospi,
     },
+    summary: parsed.summary,
     assetNote: parsed.assetNote,
   };
 

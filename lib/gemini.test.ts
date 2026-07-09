@@ -10,6 +10,16 @@ vi.mock("@google/genai", () => ({
 
 import { getSeasonResult, SEASON_PROMPT } from "./gemini";
 
+const VALID_EVIDENCE = {
+  cpi: "둔화세 지속",
+  usRate: "동결 기조 유지",
+  krRate: "동결 기조 유지",
+  usdKrw: "안정세",
+  sp500: "상승 둔화",
+  nasdaq: "상승 둔화",
+  kospi: "박스권",
+};
+
 describe("getSeasonResult", () => {
   beforeEach(() => {
     generateContentMock.mockReset();
@@ -19,7 +29,8 @@ describe("getSeasonResult", () => {
     generateContentMock.mockResolvedValue({
       text: JSON.stringify({
         season: "가을",
-        evidence: { cpi: "둔화세 지속", rate: "동결 기조 유지", index: "상승 둔화" },
+        evidence: VALID_EVIDENCE,
+        summary: "물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다.",
         assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
       }),
     });
@@ -28,18 +39,23 @@ describe("getSeasonResult", () => {
 
     expect(result).toEqual({
       season: "가을",
-      evidence: { cpi: "둔화세 지속", rate: "동결 기조 유지", index: "상승 둔화" },
+      evidence: VALID_EVIDENCE,
+      summary: "물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다.",
       assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
     });
   });
 
   it("parses JSON wrapped in a markdown code fence", async () => {
     generateContentMock.mockResolvedValue({
-      text: "```json\n" + JSON.stringify({
-        season: "겨울",
-        evidence: { cpi: "상승", rate: "인상", index: "하락" },
-        assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
-      }) + "\n```",
+      text:
+        "```json\n" +
+        JSON.stringify({
+          season: "겨울",
+          evidence: VALID_EVIDENCE,
+          summary: "전반적으로 하방 압력이 우세합니다.",
+          assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
+        }) +
+        "\n```",
     });
 
     const result = await getSeasonResult();
@@ -69,6 +85,20 @@ describe("getSeasonResult", () => {
     await expect(getSeasonResult()).rejects.toThrow();
   });
 
+  it("throws when an evidence field is missing (e.g. usdKrw)", async () => {
+    const { usdKrw, ...incompleteEvidence } = VALID_EVIDENCE;
+    generateContentMock.mockResolvedValue({
+      text: JSON.stringify({
+        season: "가을",
+        evidence: incompleteEvidence,
+        summary: "요약",
+        assetNote: "자산 경향",
+      }),
+    });
+
+    await expect(getSeasonResult()).rejects.toThrow();
+  });
+
   it("includes an instruction against stock names, buy/sell signals, and price targets in the prompt", () => {
     expect(SEASON_PROMPT).toContain("종목명");
     expect(SEASON_PROMPT).toMatch(/매수\/매도 시그널|매수·매도 시그널/);
@@ -79,7 +109,8 @@ describe("getSeasonResult", () => {
     generateContentMock.mockResolvedValue({
       text: JSON.stringify({
         season: "여름",
-        evidence: { cpi: "상승", rate: "동결", index: "강세" },
+        evidence: VALID_EVIDENCE,
+        summary: "요약",
         assetNote: "지금은 A전자 매수 추천 시점입니다.",
       }),
     });
@@ -91,7 +122,8 @@ describe("getSeasonResult", () => {
     generateContentMock.mockResolvedValue({
       text: JSON.stringify({
         season: "겨울",
-        evidence: { cpi: "상승", rate: "인상", index: "목표가 5000 하향" },
+        evidence: { ...VALID_EVIDENCE, sp500: "목표가 5000 하향" },
+        summary: "요약",
         assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
       }),
     });
@@ -103,7 +135,8 @@ describe("getSeasonResult", () => {
     generateContentMock.mockResolvedValue({
       text: JSON.stringify({
         season: "봄",
-        evidence: { cpi: "안정", rate: "인하 기대", index: "상승 시작" },
+        evidence: VALID_EVIDENCE,
+        summary: "요약",
         assetNote: "성장주가 주목받는 경향이 있습니다.",
         recommendedTicker: "AAPL",
       }),
@@ -112,6 +145,6 @@ describe("getSeasonResult", () => {
     const result = await getSeasonResult();
 
     expect(result).not.toHaveProperty("recommendedTicker");
-    expect(Object.keys(result)).toEqual(["season", "evidence", "assetNote"]);
+    expect(Object.keys(result)).toEqual(["season", "evidence", "summary", "assetNote"]);
   });
 });

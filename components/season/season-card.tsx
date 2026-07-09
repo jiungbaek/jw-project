@@ -10,6 +10,16 @@ const SEASON_EMOJI: Record<SeasonResult["season"], string> = {
   겨울: "❄️",
 };
 
+const EVIDENCE_LABELS: { key: keyof SeasonResult["evidence"]; label: string }[] = [
+  { key: "cpi", label: "CPI" },
+  { key: "usRate", label: "미국채 10년물 금리" },
+  { key: "krRate", label: "한국채 10년물 금리" },
+  { key: "usdKrw", label: "원달러 환율" },
+  { key: "sp500", label: "S&P500" },
+  { key: "nasdaq", label: "나스닥" },
+  { key: "kospi", label: "코스피" },
+];
+
 export function SeasonCard({ result }: { result: SeasonResult }) {
   return (
     <Card>
@@ -20,10 +30,16 @@ export function SeasonCard({ result }: { result: SeasonResult }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-1 rounded-lg bg-muted p-4 text-sm">
-          <div className="text-xs font-bold text-muted-foreground">판정 근거</div>
-          <div>· CPI: {result.evidence.cpi}</div>
-          <div>· 금리: {result.evidence.rate}</div>
-          <div>· 지수: {result.evidence.index}</div>
+          <div className="text-xs font-bold text-muted-foreground">지표 현황</div>
+          {EVIDENCE_LABELS.map(({ key, label }) => (
+            <div key={key}>
+              · {label}: {result.evidence[key]}
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
+          <div className="text-xs font-bold text-muted-foreground">판정 설명</div>
+          <p>{result.summary}</p>
         </div>
         <div className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
           <div className="text-xs font-bold text-muted-foreground">

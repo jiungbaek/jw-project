@@ -12,21 +12,27 @@ import { GET } from "./route";
 
 describe("GET /api/season", () => {
   it("returns 200 with a SeasonResult when Gemini succeeds", async () => {
-    getSeasonResultMock.mockResolvedValue({
+    const seasonResult = {
       season: "가을",
-      evidence: { cpi: "둔화세 지속", rate: "동결 기조 유지", index: "상승 둔화" },
+      evidence: {
+        cpi: "둔화세 지속",
+        usRate: "동결 기조 유지",
+        krRate: "동결 기조 유지",
+        usdKrw: "안정세",
+        sp500: "상승 둔화",
+        nasdaq: "상승 둔화",
+        kospi: "박스권",
+      },
+      summary: "물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다.",
       assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
-    });
+    };
+    getSeasonResultMock.mockResolvedValue(seasonResult);
 
     const response = await GET();
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toEqual({
-      season: "가을",
-      evidence: { cpi: "둔화세 지속", rate: "동결 기조 유지", index: "상승 둔화" },
-      assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
-    });
+    expect(body).toEqual(seasonResult);
   });
 
   it("returns a non-2xx status when the Gemini call rejects", async () => {

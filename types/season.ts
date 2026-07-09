@@ -4,8 +4,13 @@ export interface SeasonResult {
   season: Season;
   evidence: {
     cpi: string;
-    rate: string;
-    index: string;
+    usRate: string;
+    krRate: string;
+    usdKrw: string;
+    sp500: string;
+    nasdaq: string;
+    kospi: string;
   };
+  summary: string;
   assetNote: string;
 }
