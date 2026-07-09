@@ -3,6 +3,11 @@ import type { Season, SeasonResult } from "@/types/season";
 
 const SEASONS: Season[] = ["봄", "여름", "가을", "겨울"];
 
+// 불변 규칙(spec.md): 종목명·매수/매도 시그널·목표가는 어떤 경로로도 표시되지 않는다.
+// 프롬프트 지시만으로는 LLM이 grounding 검색 결과에 딸려온 표현을 그대로 옮길 수 있으므로,
+// 응답을 반환하기 전 서버에서 한 번 더 걸러낸다 (fail closed: 하나라도 걸리면 응답 자체를 무효로 처리).
+const PROHIBITED_TERMS = ["매수", "매도", "목표가"];
+
 const PROMPT = `당신은 매크로 경제 리포터입니다. 오늘 날짜 기준으로 웹 검색을 통해 다음 3개 지표의 최신 추세를 확인하세요:
 1. 미국 CPI(소비자물가지수) 추세
 2. 미국채 10년물 금리 추세
@@ -34,7 +39,7 @@ function extractJson(text: string): unknown {
   return JSON.parse(jsonText);
 }
 
-function isSeasonResult(value: unknown): value is SeasonResult {
+function isSeasonResultShape(value: unknown): value is SeasonResult {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   if (!SEASONS.includes(v.season as Season)) return false;
@@ -47,16 +52,28 @@ function isSeasonResult(value: unknown): value is SeasonResult {
   return true;
 }
 
+function containsProhibitedTerms(result: SeasonResult): boolean {
+  const text = [result.evidence.cpi, result.evidence.rate, result.evidence.index, result.assetNote].join(
+    " "
+  );
+  return PROHIBITED_TERMS.some((term) => text.includes(term));
+}
+
 export async function getSeasonResult(): Promise<SeasonResult> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: PROMPT,
-    config: {
-      tools: [{ googleSearch: {} }],
-    },
-  });
+  let response;
+  try {
+    response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: PROMPT,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+  } catch {
+    throw new Error("계절 판정을 위한 검색에 실패했습니다.");
+  }
 
   const text = response.text;
   if (!text) {
@@ -70,11 +87,26 @@ export async function getSeasonResult(): Promise<SeasonResult> {
     throw new Error("계절 판정 응답을 JSON으로 해석할 수 없습니다.");
   }
 
-  if (!isSeasonResult(parsed)) {
+  if (!isSeasonResultShape(parsed)) {
     throw new Error("계절 판정 응답 형식이 올바르지 않습니다.");
   }
 
-  return parsed;
+  // 화이트리스트로 재구성 — 모델이 응답에 끼워 넣은 임의의 추가 필드는 클라이언트로 전달하지 않는다.
+  const result: SeasonResult = {
+    season: parsed.season,
+    evidence: {
+      cpi: parsed.evidence.cpi,
+      rate: parsed.evidence.rate,
+      index: parsed.evidence.index,
+    },
+    assetNote: parsed.assetNote,
+  };
+
+  if (containsProhibitedTerms(result)) {
+    throw new Error("계절 판정 응답에 허용되지 않는 표현이 포함되어 있습니다.");
+  }
+
+  return result;
 }
 
 export { PROMPT as SEASON_PROMPT };

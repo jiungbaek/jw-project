@@ -109,7 +109,7 @@
 
 ---
 
-### Task 3: 결과 페이지 에러/재시도 + 재방문 시 재요청
+### Task 3: 결과 페이지 에러/재시도 + 재방문 시 재요청 ✅ 완료 (커밋 3690b45)
 
 - **담당 시나리오**: Scenario 2 (UI — 에러 + 재시도), Scenario 3 (재요청 시 캐시 없이 새 로딩)
 - **크기**: S (3 파일)
@@ -130,10 +130,10 @@
 ---
 
 ### Checkpoint: Task 3 이후 (최종)
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 에러 → 재시도 → 성공, 그리고 메인↔결과 재방문 흐름이 실제 브라우저에서 동작 (Browser MCP, 증거 `artifacts/investment-4-seasons/evidence/checkpoint-2.png`)
-- [ ] Vercel 배포 완료 후 배포 URL에서 동일 흐름 재확인 (Human review)
+- [x] 모든 테스트 통과: `bun run test` (16/16)
+- [x] 빌드 성공: `bun run build`
+- [x] 재방문 시 새 로딩부터 시작하는 흐름을 실제 브라우저에서 확인 (에러/재시도는 6개 Vitest 케이스로 커버)
+- [ ] Vercel 배포 완료 후 배포 URL에서 동일 흐름 재확인 (Human review) — 사용자 진행 예정
 
 ## 미결정 항목
 

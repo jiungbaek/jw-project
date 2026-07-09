@@ -74,4 +74,44 @@ describe("getSeasonResult", () => {
     expect(SEASON_PROMPT).toMatch(/매수\/매도 시그널|매수·매도 시그널/);
     expect(SEASON_PROMPT).toContain("목표가");
   });
+
+  it("throws when the model ignores the prompt and includes a buy/sell signal in assetNote", async () => {
+    generateContentMock.mockResolvedValue({
+      text: JSON.stringify({
+        season: "여름",
+        evidence: { cpi: "상승", rate: "동결", index: "강세" },
+        assetNote: "지금은 A전자 매수 추천 시점입니다.",
+      }),
+    });
+
+    await expect(getSeasonResult()).rejects.toThrow();
+  });
+
+  it("throws when the model includes a price target in the evidence fields", async () => {
+    generateContentMock.mockResolvedValue({
+      text: JSON.stringify({
+        season: "겨울",
+        evidence: { cpi: "상승", rate: "인상", index: "목표가 5000 하향" },
+        assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
+      }),
+    });
+
+    await expect(getSeasonResult()).rejects.toThrow();
+  });
+
+  it("strips unexpected extra fields from the model response before returning", async () => {
+    generateContentMock.mockResolvedValue({
+      text: JSON.stringify({
+        season: "봄",
+        evidence: { cpi: "안정", rate: "인하 기대", index: "상승 시작" },
+        assetNote: "성장주가 주목받는 경향이 있습니다.",
+        recommendedTicker: "AAPL",
+      }),
+    });
+
+    const result = await getSeasonResult();
+
+    expect(result).not.toHaveProperty("recommendedTicker");
+    expect(Object.keys(result)).toEqual(["season", "evidence", "assetNote"]);
+  });
 });

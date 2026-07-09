@@ -7,9 +7,7 @@ export async function GET() {
     const result = await getSeasonResult();
     return Response.json(result);
   } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : "계절 판정에 실패했습니다." },
-      { status: 502 }
-    );
+    console.error("[api/season]", error);
+    return Response.json({ error: true }, { status: 502 });
   }
 }
