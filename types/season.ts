@@ -4,22 +4,22 @@ export type Signal = "good" | "neutral" | "bad";
 
 export interface IndicatorReading {
   value: string;
+  changePct: number;
   signal: Signal;
 }
 
+export type IndicatorKey =
+  | "usRate"
+  | "usdKrw"
+  | "gold"
+  | "wti"
+  | "sp500"
+  | "nasdaq"
+  | "kospi";
+
 export interface SeasonResult {
   season: Season;
-  evidence: {
-    cpi: IndicatorReading;
-    usRate: IndicatorReading;
-    krRate: IndicatorReading;
-    usdKrw: IndicatorReading;
-    gold: IndicatorReading;
-    wti: IndicatorReading;
-    sp500: IndicatorReading;
-    nasdaq: IndicatorReading;
-    kospi: IndicatorReading;
-  };
+  evidence: Record<IndicatorKey, IndicatorReading>;
   summary: string;
   assetNote: string;
 }

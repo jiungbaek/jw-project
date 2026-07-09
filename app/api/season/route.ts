@@ -1,4 +1,4 @@
-import { getSeasonResult } from "@/lib/gemini";
+import { getSeasonResult } from "@/lib/season";
 
 export const dynamic = "force-dynamic";
 

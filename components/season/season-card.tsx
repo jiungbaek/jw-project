@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Signal, SeasonResult } from "@/types/season";
+import { cn } from "@/lib/utils";
+import type { IndicatorKey, Signal, SeasonResult } from "@/types/season";
 
 const SEASON_EMOJI: Record<SeasonResult["season"], string> = {
   봄: "🌱",
@@ -16,10 +17,8 @@ const SIGNAL_EMOJI: Record<Signal, string> = {
   bad: "🔴",
 };
 
-const EVIDENCE_LABELS: { key: keyof SeasonResult["evidence"]; label: string }[] = [
-  { key: "cpi", label: "CPI" },
+const EVIDENCE_LABELS: { key: IndicatorKey; label: string }[] = [
   { key: "usRate", label: "미국채 10년물" },
-  { key: "krRate", label: "국고채 10년물" },
   { key: "usdKrw", label: "원달러" },
   { key: "gold", label: "금" },
   { key: "wti", label: "WTI" },
@@ -27,6 +26,11 @@ const EVIDENCE_LABELS: { key: keyof SeasonResult["evidence"]; label: string }[] 
   { key: "nasdaq", label: "나스닥" },
   { key: "kospi", label: "코스피" },
 ];
+
+function formatChange(changePct: number): string {
+  const sign = changePct >= 0 ? "+" : "";
+  return `${sign}${changePct.toFixed(2)}%`;
+}
 
 export function SeasonCard({ result }: { result: SeasonResult }) {
   return (
@@ -41,18 +45,30 @@ export function SeasonCard({ result }: { result: SeasonResult }) {
           <thead>
             <tr className="border-b text-xs text-muted-foreground">
               <th className="py-1.5 text-left font-normal">지표</th>
-              <th className="py-1.5 text-left font-normal">값</th>
+              <th className="py-1.5 text-right font-normal">값</th>
+              <th className="py-1.5 text-right font-normal">등락</th>
               <th className="py-1.5 text-center font-normal">신호</th>
             </tr>
           </thead>
           <tbody>
-            {EVIDENCE_LABELS.map(({ key, label }) => (
-              <tr key={key} className="border-b last:border-0">
-                <td className="py-1.5">{label}</td>
-                <td className="py-1.5">{result.evidence[key].value}</td>
-                <td className="py-1.5 text-center">{SIGNAL_EMOJI[result.evidence[key].signal]}</td>
-              </tr>
-            ))}
+            {EVIDENCE_LABELS.map(({ key, label }) => {
+              const reading = result.evidence[key];
+              return (
+                <tr key={key} className="border-b last:border-0">
+                  <td className="py-1.5">{label}</td>
+                  <td className="py-1.5 text-right tabular-nums">{reading.value}</td>
+                  <td
+                    className={cn(
+                      "py-1.5 text-right tabular-nums text-xs",
+                      reading.changePct >= 0 ? "text-muted-foreground" : "text-destructive"
+                    )}
+                  >
+                    {formatChange(reading.changePct)}
+                  </td>
+                  <td className="py-1.5 text-center">{SIGNAL_EMOJI[reading.signal]}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <div className="flex flex-col gap-1 rounded-lg border p-4 text-sm">

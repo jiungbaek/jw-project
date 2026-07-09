@@ -4,29 +4,27 @@ const { getSeasonResultMock } = vi.hoisted(() => ({
   getSeasonResultMock: vi.fn(),
 }));
 
-vi.mock("@/lib/gemini", () => ({
+vi.mock("@/lib/season", () => ({
   getSeasonResult: getSeasonResultMock,
 }));
 
 import { GET } from "./route";
 
 describe("GET /api/season", () => {
-  it("returns 200 with a SeasonResult when Gemini succeeds", async () => {
+  it("returns 200 with a SeasonResult when quotes resolve", async () => {
     const seasonResult = {
       season: "가을",
       evidence: {
-        cpi: { value: "4.2%", signal: "bad" },
-        usRate: { value: "4.58%", signal: "neutral" },
-        krRate: { value: "4.27%", signal: "neutral" },
-        usdKrw: { value: "1,507원", signal: "neutral" },
-        gold: { value: "$3,320", signal: "good" },
-        wti: { value: "$68", signal: "neutral" },
-        sp500: { value: "7,500선", signal: "good" },
-        nasdaq: { value: "29,000선", signal: "good" },
-        kospi: { value: "7,200선", signal: "bad" },
+        usRate: { value: "4.58%", changePct: 0.3, signal: "bad" },
+        usdKrw: { value: "1,507원", changePct: 0.1, signal: "neutral" },
+        gold: { value: "$3,320", changePct: -0.4, signal: "good" },
+        wti: { value: "$68.0", changePct: 0.05, signal: "neutral" },
+        sp500: { value: "7,500", changePct: -0.5, signal: "bad" },
+        nasdaq: { value: "29,000", changePct: -0.8, signal: "bad" },
+        kospi: { value: "7,200", changePct: -1.2, signal: "bad" },
       },
-      summary: "물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다.",
-      assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
+      summary: "매크로 역풍 속에 지수가 흔들리는 둔화 국면입니다.",
+      assetNote: "둔화기에는 방어적인 자산군이 주목받는 경향이 있습니다.",
     };
     getSeasonResultMock.mockResolvedValue(seasonResult);
 
@@ -37,18 +35,8 @@ describe("GET /api/season", () => {
     expect(body).toEqual(seasonResult);
   });
 
-  it("returns a non-2xx status when the Gemini call rejects", async () => {
-    getSeasonResultMock.mockRejectedValue(new Error("network error"));
-
-    const response = await GET();
-
-    expect(response.status).not.toBe(200);
-    const body = await response.json();
-    expect(body.error).toBeTruthy();
-  });
-
-  it("returns a non-2xx status when the response cannot be parsed", async () => {
-    getSeasonResultMock.mockRejectedValue(new Error("계절 판정 응답을 JSON으로 해석할 수 없습니다."));
+  it("returns a non-2xx status when quote fetching fails", async () => {
+    getSeasonResultMock.mockRejectedValue(new Error("시세 조회에 실패했습니다: ^GSPC"));
 
     const response = await GET();
 

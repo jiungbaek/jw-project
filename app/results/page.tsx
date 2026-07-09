@@ -45,7 +45,7 @@ export default function ResultsPage() {
             <LoaderCircleIcon className="size-6 animate-spin" />
             <div className="text-sm font-bold">오늘의 계절을 판정하는 중...</div>
             <p className="text-xs text-muted-foreground">
-              CPI·금리·주요 지수를 실시간으로 확인하고 있어요
+              금리·환율·원자재·지수를 실시간으로 확인하고 있어요
             </p>
           </CardContent>
         </Card>

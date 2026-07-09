@@ -4,15 +4,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import ResultsPage from "./page";
 
 const VALID_EVIDENCE = {
-  cpi: { value: "4.2%", signal: "bad" },
-  usRate: { value: "4.58%", signal: "neutral" },
-  krRate: { value: "4.27%", signal: "neutral" },
-  usdKrw: { value: "1,507원", signal: "neutral" },
-  gold: { value: "$3,320", signal: "good" },
-  wti: { value: "$68", signal: "neutral" },
-  sp500: { value: "7,500선", signal: "good" },
-  nasdaq: { value: "29,000선", signal: "good" },
-  kospi: { value: "7,200선", signal: "bad" },
+  usRate: { value: "4.58%", changePct: 0.3, signal: "bad" },
+  usdKrw: { value: "1,507원", changePct: 0.1, signal: "neutral" },
+  gold: { value: "$3,320", changePct: -0.4, signal: "good" },
+  wti: { value: "$68.0", changePct: 0.05, signal: "neutral" },
+  sp500: { value: "7,500", changePct: 0.6, signal: "good" },
+  nasdaq: { value: "29,000", changePct: 0.9, signal: "good" },
+  kospi: { value: "7,200", changePct: -1.2, signal: "bad" },
 };
 
 describe("Results page", () => {
@@ -32,32 +30,34 @@ describe("Results page", () => {
     expect(screen.getByText("오늘의 계절을 판정하는 중...")).toBeInTheDocument();
   });
 
-  it("shows the judged season, all 9 indicator rows, summary and asset note once the fetch resolves", async () => {
+  it("shows the judged season, all 7 indicator rows, summary and asset note once the fetch resolves", async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: async () => ({
         season: "가을",
         evidence: VALID_EVIDENCE,
-        summary: "물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다.",
-        assetNote: "가치주·에너지 섹터가 상대적으로 견조합니다.",
+        summary: "매크로 역풍 속에 지수가 흔들리는 둔화 국면입니다.",
+        assetNote: "둔화기에는 방어적인 자산군이 주목받는 경향이 있습니다.",
       }),
     });
 
     render(<ResultsPage />);
 
     await waitFor(() => expect(screen.getByText("가을")).toBeInTheDocument());
-    expect(screen.getByText("4.2%")).toBeInTheDocument();
+    expect(screen.getByText("4.58%")).toBeInTheDocument();
     expect(screen.getByText("1,507원")).toBeInTheDocument();
     expect(screen.getByText("$3,320")).toBeInTheDocument();
-    expect(screen.getByText("$68")).toBeInTheDocument();
-    expect(screen.getByText("7,500선")).toBeInTheDocument();
-    expect(screen.getByText("7,200선")).toBeInTheDocument();
+    expect(screen.getByText("$68.0")).toBeInTheDocument();
+    expect(screen.getByText("7,500")).toBeInTheDocument();
+    expect(screen.getByText("7,200")).toBeInTheDocument();
+    expect(screen.getByText("+0.30%")).toBeInTheDocument();
+    expect(screen.getByText("-1.20%")).toBeInTheDocument();
     expect(
-      screen.getByText(/물가와 지수 모두 둔화 신호를 보이고 있어 가을 국면으로 판단됩니다\./)
+      screen.getByText(/매크로 역풍 속에 지수가 흔들리는 둔화 국면입니다\./)
     ).toBeInTheDocument();
-    expect(screen.getByText(/가치주·에너지 섹터가 상대적으로 견조합니다\./)).toBeInTheDocument();
+    expect(screen.getByText(/둔화기에는 방어적인 자산군이 주목받는 경향이 있습니다\./)).toBeInTheDocument();
     expect(screen.getAllByText("🟢").length).toBe(3);
-    expect(screen.getAllByText("🟡").length).toBe(4);
+    expect(screen.getAllByText("🟡").length).toBe(2);
     expect(screen.getAllByText("🔴").length).toBe(2);
   });
 
@@ -110,7 +110,7 @@ describe("Results page", () => {
         season: "겨울",
         evidence: VALID_EVIDENCE,
         summary: "요약",
-        assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
+        assetNote: "채권과 현금성 자산의 상대 매력이 높아지는 경향이 있습니다.",
       }),
     });
 
