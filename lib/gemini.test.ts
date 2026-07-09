@@ -11,13 +11,15 @@ vi.mock("@google/genai", () => ({
 import { getSeasonResult, SEASON_PROMPT } from "./gemini";
 
 const VALID_EVIDENCE = {
-  cpi: "둔화세 지속",
-  usRate: "동결 기조 유지",
-  krRate: "동결 기조 유지",
-  usdKrw: "안정세",
-  sp500: "상승 둔화",
-  nasdaq: "상승 둔화",
-  kospi: "박스권",
+  cpi: { value: "4.2%", signal: "bad" },
+  usRate: { value: "4.58%", signal: "neutral" },
+  krRate: { value: "4.27%", signal: "neutral" },
+  usdKrw: { value: "1,507원", signal: "neutral" },
+  gold: { value: "$3,320", signal: "good" },
+  wti: { value: "$68", signal: "neutral" },
+  sp500: { value: "7,500선", signal: "good" },
+  nasdaq: { value: "29,000선", signal: "good" },
+  kospi: { value: "7,200선", signal: "bad" },
 };
 
 describe("getSeasonResult", () => {
@@ -99,6 +101,19 @@ describe("getSeasonResult", () => {
     await expect(getSeasonResult()).rejects.toThrow();
   });
 
+  it("throws when an evidence field has an invalid signal value", async () => {
+    generateContentMock.mockResolvedValue({
+      text: JSON.stringify({
+        season: "가을",
+        evidence: { ...VALID_EVIDENCE, cpi: { value: "4.2%", signal: "up" } },
+        summary: "요약",
+        assetNote: "자산 경향",
+      }),
+    });
+
+    await expect(getSeasonResult()).rejects.toThrow();
+  });
+
   it("includes an instruction against stock names, buy/sell signals, and price targets in the prompt", () => {
     expect(SEASON_PROMPT).toContain("종목명");
     expect(SEASON_PROMPT).toMatch(/매수\/매도 시그널|매수·매도 시그널/);
@@ -118,11 +133,11 @@ describe("getSeasonResult", () => {
     await expect(getSeasonResult()).rejects.toThrow();
   });
 
-  it("throws when the model includes a price target in the evidence fields", async () => {
+  it("throws when the model includes a price target in an evidence value", async () => {
     generateContentMock.mockResolvedValue({
       text: JSON.stringify({
         season: "겨울",
-        evidence: { ...VALID_EVIDENCE, sp500: "목표가 5000 하향" },
+        evidence: { ...VALID_EVIDENCE, sp500: { value: "목표가 5000 하향", signal: "bad" } },
         summary: "요약",
         assetNote: "안전자산 선호가 높아지는 경향이 있습니다.",
       }),
@@ -137,8 +152,8 @@ describe("getSeasonResult", () => {
         season: "여름",
         evidence: {
           ...VALID_EVIDENCE,
-          krRate: "외국인 매도세로 국채 금리가 상승했습니다.",
-          usdKrw: "역외 매수 수요로 원화가 약세를 보였습니다.",
+          krRate: { value: "4.27%", signal: "bad" },
+          usdKrw: { value: "1,507원", signal: "bad" },
         },
         summary: "채권 매도와 환율 매수 흐름이 겹치며 과열 국면으로 판단됩니다.",
         assetNote: "가치주와 원자재가 상대적으로 견조한 경향이 있습니다.",
