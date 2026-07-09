@@ -131,6 +131,25 @@ describe("getSeasonResult", () => {
     await expect(getSeasonResult()).rejects.toThrow();
   });
 
+  it("does not reject generic market-flow language that happens to contain 매수/매도 (regression)", async () => {
+    generateContentMock.mockResolvedValue({
+      text: JSON.stringify({
+        season: "여름",
+        evidence: {
+          ...VALID_EVIDENCE,
+          krRate: "외국인 매도세로 국채 금리가 상승했습니다.",
+          usdKrw: "역외 매수 수요로 원화가 약세를 보였습니다.",
+        },
+        summary: "채권 매도와 환율 매수 흐름이 겹치며 과열 국면으로 판단됩니다.",
+        assetNote: "가치주와 원자재가 상대적으로 견조한 경향이 있습니다.",
+      }),
+    });
+
+    const result = await getSeasonResult();
+
+    expect(result.season).toBe("여름");
+  });
+
   it("strips unexpected extra fields from the model response before returning", async () => {
     generateContentMock.mockResolvedValue({
       text: JSON.stringify({
