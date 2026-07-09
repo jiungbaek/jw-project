@@ -54,7 +54,7 @@
 
 ## Tasks
 
-### Task 1: Gemini 계절 판정 서비스 + API Route
+### Task 1: Gemini 계절 판정 서비스 + API Route ✅ 완료 (커밋 13726c6)
 
 - **담당 시나리오**: Scenario 1 (backend — 정상 판정 응답 형태), Scenario 2 (backend — 호출/파싱 실패 시 에러 응답)
 - **크기**: M (5 파일)
