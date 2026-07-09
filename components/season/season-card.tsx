@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { IndicatorKey, Signal, SeasonResult } from "@/types/season";
 
@@ -75,6 +76,40 @@ export function SeasonCard({ result }: { result: SeasonResult }) {
         <div className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
           <div className="text-xs font-bold text-muted-foreground">판정 설명</div>
           <p>{result.summary}</p>
+        </div>
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
+          <div className="text-xs font-bold text-primary">지금 당장 취해야 할 포지션</div>
+          <p className="font-medium">{result.actionPlan.position}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm">
+            <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+              추천 자산
+            </div>
+            <ul className="flex flex-col gap-1.5">
+              {result.actionPlan.recommended.map((asset) => (
+                <li key={asset} className="flex items-start gap-1.5">
+                  <Badge variant="outline" className="shrink-0 border-emerald-500/40 text-emerald-700 dark:text-emerald-400">
+                    ✓
+                  </Badge>
+                  <span>{asset}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <div className="text-xs font-bold text-destructive">피해야 할 자산</div>
+            <ul className="flex flex-col gap-1.5">
+              {result.actionPlan.avoid.map((asset) => (
+                <li key={asset} className="flex items-start gap-1.5">
+                  <Badge variant="outline" className="shrink-0 border-destructive/40 text-destructive">
+                    ✕
+                  </Badge>
+                  <span>{asset}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
           <div className="text-xs font-bold text-muted-foreground">

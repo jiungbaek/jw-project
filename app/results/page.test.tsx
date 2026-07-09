@@ -3,6 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import ResultsPage from "./page";
 
+const VALID_ACTION_PLAN = {
+  position: "주식 비중을 과감히 줄이고 현금·안전자산으로 방어벽 구축",
+  recommended: ["금(Gold)", "유틸리티·헬스케어", "필수 소비재", "인버스 ETF"],
+  avoid: ["경기민감주", "고변동 성장주", "레버리지 포지션"],
+};
+
 const VALID_EVIDENCE = {
   cpi: { value: "2.7%", changePct: -0.1, signal: "good" },
   usRate: { value: "4.58%", changePct: 0.3, signal: "bad" },
@@ -39,6 +45,7 @@ describe("Results page", () => {
         evidence: VALID_EVIDENCE,
         summary: "매크로 역풍 속에 지수가 흔들리는 둔화 국면입니다.",
         assetNote: "둔화기에는 방어적인 자산군이 주목받는 경향이 있습니다.",
+        actionPlan: VALID_ACTION_PLAN,
       }),
     });
 
@@ -59,6 +66,12 @@ describe("Results page", () => {
       screen.getByText(/매크로 역풍 속에 지수가 흔들리는 둔화 국면입니다\./)
     ).toBeInTheDocument();
     expect(screen.getByText(/둔화기에는 방어적인 자산군이 주목받는 경향이 있습니다\./)).toBeInTheDocument();
+    expect(screen.getByText("지금 당장 취해야 할 포지션")).toBeInTheDocument();
+    expect(screen.getByText(VALID_ACTION_PLAN.position)).toBeInTheDocument();
+    expect(screen.getByText("추천 자산")).toBeInTheDocument();
+    expect(screen.getByText("피해야 할 자산")).toBeInTheDocument();
+    expect(screen.getByText("금(Gold)")).toBeInTheDocument();
+    expect(screen.getByText("경기민감주")).toBeInTheDocument();
     expect(screen.getAllByText("🟢").length).toBe(4);
     expect(screen.getAllByText("🟡").length).toBe(2);
     expect(screen.getAllByText("🔴").length).toBe(2);
@@ -72,6 +85,11 @@ describe("Results page", () => {
         evidence: VALID_EVIDENCE,
         summary: "요약",
         assetNote: "성장주가 주목받는 경향이 있습니다.",
+        actionPlan: {
+          position: "위험 자산 비중을 적극 늘리고 성장주·기술주 중심으로 공격적 매수",
+          recommended: ["빅테크·기술주"],
+          avoid: ["장기채권"],
+        },
       }),
     });
 
@@ -114,6 +132,11 @@ describe("Results page", () => {
         evidence: VALID_EVIDENCE,
         summary: "요약",
         assetNote: "채권과 현금성 자산의 상대 매력이 높아지는 경향이 있습니다.",
+        actionPlan: {
+          position: "장기채권 매집하고 우량주 바닥 줍줍 기회를 준비",
+          recommended: ["미국 장기 국채"],
+          avoid: ["경기민감주"],
+        },
       }),
     });
 

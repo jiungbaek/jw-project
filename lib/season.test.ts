@@ -89,6 +89,9 @@ describe("getSeasonResult", () => {
     expect(["봄", "여름", "가을", "겨울"]).toContain(result.season);
     expect(result.summary.length).toBeGreaterThan(0);
     expect(result.assetNote.length).toBeGreaterThan(0);
+    expect(result.actionPlan.position.length).toBeGreaterThan(0);
+    expect(result.actionPlan.recommended.length).toBeGreaterThan(0);
+    expect(result.actionPlan.avoid.length).toBeGreaterThan(0);
   });
 
   it("formats each indicator value and derives its signal", async () => {

@@ -26,6 +26,11 @@ describe("GET /api/season", () => {
       },
       summary: "매크로 역풍 속에 지수가 흔들리는 둔화 국면입니다.",
       assetNote: "둔화기에는 방어적인 자산군이 주목받는 경향이 있습니다.",
+      actionPlan: {
+        position: "주식 비중을 과감히 줄이고 현금·안전자산으로 방어벽 구축",
+        recommended: ["금(Gold)", "유틸리티·헬스케어"],
+        avoid: ["경기민감주", "고변동 성장주"],
+      },
     };
     getSeasonResultMock.mockResolvedValue(seasonResult);
 

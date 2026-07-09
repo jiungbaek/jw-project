@@ -38,7 +38,7 @@ export default function ResultsPage() {
   }, [attempt]);
 
   return (
-    <div className="@container max-w-md mx-auto p-6">
+    <div className="@container max-w-lg mx-auto p-6">
       {state.status === "loading" && (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12 text-center">

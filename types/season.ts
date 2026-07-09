@@ -18,9 +18,16 @@ export type IndicatorKey =
   | "nasdaq"
   | "kospi";
 
+export interface SeasonActionPlan {
+  position: string;
+  recommended: string[];
+  avoid: string[];
+}
+
 export interface SeasonResult {
   season: Season;
   evidence: Record<IndicatorKey, IndicatorReading>;
   summary: string;
   assetNote: string;
+  actionPlan: SeasonActionPlan;
 }

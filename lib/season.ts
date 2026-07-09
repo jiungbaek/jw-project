@@ -1,4 +1,11 @@
-import type { IndicatorKey, IndicatorReading, Season, SeasonResult, Signal } from "@/types/season";
+import type {
+  IndicatorKey,
+  IndicatorReading,
+  Season,
+  SeasonActionPlan,
+  SeasonResult,
+  Signal,
+} from "@/types/season";
 import { fetchQuote } from "@/lib/yahoo";
 import { fetchCpiYoY } from "@/lib/fred";
 
@@ -73,6 +80,29 @@ const SEASON_ASSET_NOTE: Record<Season, string> = {
   겨울: "침체기에는 채권과 현금성 자산의 상대 매력이 높아지는 경향이 있습니다.",
 };
 
+const SEASON_ACTION_PLAN: Record<Season, SeasonActionPlan> = {
+  봄: {
+    position: "위험 자산 비중을 적극 늘리고 성장주·기술주 중심으로 공격적 매수",
+    recommended: ["빅테크·기술주", "혁신 성장주", "경기 소비재(자동차·패션)"],
+    avoid: ["장기채권", "현금 과다 보유", "방어주·유틸리티"],
+  },
+  여름: {
+    position: "고평가 성장주 일부 익절 후 원자재·가치주로 포트폴리오 전환",
+    recommended: ["원유·구리 등 원자재 ETF", "에너지 섹터", "금융·은행주"],
+    avoid: ["고평가 기술주·성장주", "장기채권", "현금 비중 과다"],
+  },
+  가을: {
+    position: "주식 비중을 과감히 줄이고 현금·안전자산으로 방어벽 구축",
+    recommended: ["금(Gold)", "유틸리티·헬스케어", "필수 소비재", "인버스 ETF"],
+    avoid: ["경기민감주", "고변동 성장주", "레버리지 포지션"],
+  },
+  겨울: {
+    position: "장기채권 매집하고 우량주 바닥 줍줍 기회를 준비",
+    recommended: ["미국 장기 국채", "현금", "배당 성향 필수 소비재"],
+    avoid: ["경기민감주", "고변동 성장주", "원자재·에너지"],
+  },
+};
+
 function buildSummary(season: Season, evidence: Record<IndicatorKey, IndicatorReading>): string {
   const equityGood = (["sp500", "nasdaq", "kospi"] as const).filter(
     (key) => evidence[key].signal === "good"
@@ -111,5 +141,6 @@ export async function getSeasonResult(): Promise<SeasonResult> {
     evidence,
     summary: buildSummary(season, evidence),
     assetNote: SEASON_ASSET_NOTE[season],
+    actionPlan: SEASON_ACTION_PLAN[season],
   };
 }
