@@ -108,7 +108,7 @@ export async function getSeasonResult(): Promise<SeasonResult> {
   let response;
   try {
     response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       contents: PROMPT,
       config: {
         tools: [{ googleSearch: {} }],
