@@ -15,6 +15,7 @@ describe("GET /api/season", () => {
     const seasonResult = {
       season: "가을",
       evidence: {
+        cpi: { value: "2.7%", changePct: -0.1, signal: "good" },
         usRate: { value: "4.58%", changePct: 0.3, signal: "bad" },
         usdKrw: { value: "1,507원", changePct: 0.1, signal: "neutral" },
         gold: { value: "$3,320", changePct: -0.4, signal: "good" },

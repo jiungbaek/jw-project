@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { IndicatorKey, IndicatorReading } from "@/types/season";
 
-const { fetchQuoteMock } = vi.hoisted(() => ({ fetchQuoteMock: vi.fn() }));
+const { fetchQuoteMock, fetchCpiYoYMock } = vi.hoisted(() => ({
+  fetchQuoteMock: vi.fn(),
+  fetchCpiYoYMock: vi.fn(),
+}));
 
 vi.mock("@/lib/yahoo", () => ({ fetchQuote: fetchQuoteMock }));
+vi.mock("@/lib/fred", () => ({ fetchCpiYoY: fetchCpiYoYMock }));
 
 import { getSeasonResult, judgeSeason, toSignal } from "./season";
 
@@ -16,6 +20,7 @@ function evidenceWith(
   macro: IndicatorReading["signal"]
 ): Record<IndicatorKey, IndicatorReading> {
   return {
+    cpi: reading(macro),
     usRate: reading(macro),
     usdKrw: reading(macro),
     gold: reading(macro),
@@ -42,6 +47,12 @@ describe("toSignal", () => {
     expect(toSignal("fx", 0.5)).toBe("bad");
     expect(toSignal("commodity", -0.5)).toBe("good");
   });
+
+  it("uses a narrower neutral band for inflation (monthly %p moves)", () => {
+    expect(toSignal("inflation", 0.03)).toBe("neutral");
+    expect(toSignal("inflation", 0.1)).toBe("bad");
+    expect(toSignal("inflation", -0.1)).toBe("good");
+  });
 });
 
 describe("judgeSeason", () => {
@@ -65,25 +76,30 @@ describe("judgeSeason", () => {
 describe("getSeasonResult", () => {
   beforeEach(() => {
     fetchQuoteMock.mockReset();
+    fetchCpiYoYMock.mockReset();
+    fetchCpiYoYMock.mockResolvedValue({ yoy: 2.7, deltaPp: -0.1 });
   });
 
-  it("builds a SeasonResult with 7 readings, a season, summary and asset note", async () => {
+  it("builds a SeasonResult with 8 readings, a season, summary and asset note", async () => {
     fetchQuoteMock.mockResolvedValue({ price: 100, changePct: 1.0 });
 
     const result = await getSeasonResult();
 
-    expect(Object.keys(result.evidence)).toHaveLength(7);
+    expect(Object.keys(result.evidence)).toHaveLength(8);
     expect(["봄", "여름", "가을", "겨울"]).toContain(result.season);
     expect(result.summary.length).toBeGreaterThan(0);
     expect(result.assetNote.length).toBeGreaterThan(0);
   });
 
   it("formats each indicator value and derives its signal", async () => {
-    // 모든 시세가 1% 상승: 지수는 good, 금리·환율·원자재는 bad → 여름
+    // 모든 시세가 1% 상승: 지수는 good, 금리·환율·원자재는 bad.
+    // CPI YoY는 -0.1%p 둔화(good)지만 매크로 점수는 -3으로 부담 우세 → 여름
     fetchQuoteMock.mockResolvedValue({ price: 1380.4, changePct: 1.0 });
 
     const result = await getSeasonResult();
 
+    expect(result.evidence.cpi.value).toBe("2.7%");
+    expect(result.evidence.cpi.signal).toBe("good");
     expect(result.evidence.usdKrw.value).toBe("1,380원");
     expect(result.evidence.usdKrw.signal).toBe("bad");
     expect(result.evidence.sp500.signal).toBe("good");
@@ -92,6 +108,13 @@ describe("getSeasonResult", () => {
 
   it("rejects when any quote fetch fails", async () => {
     fetchQuoteMock.mockRejectedValue(new Error("시세 조회에 실패했습니다: ^GSPC"));
+
+    await expect(getSeasonResult()).rejects.toThrow();
+  });
+
+  it("rejects when the CPI fetch fails", async () => {
+    fetchQuoteMock.mockResolvedValue({ price: 100, changePct: 1.0 });
+    fetchCpiYoYMock.mockRejectedValue(new Error("CPI 조회에 실패했습니다."));
 
     await expect(getSeasonResult()).rejects.toThrow();
   });

@@ -17,7 +17,8 @@ const SIGNAL_EMOJI: Record<Signal, string> = {
   bad: "🔴",
 };
 
-const EVIDENCE_LABELS: { key: IndicatorKey; label: string }[] = [
+const EVIDENCE_LABELS: { key: IndicatorKey; label: string; changeUnit?: string }[] = [
+  { key: "cpi", label: "CPI(YoY)", changeUnit: "%p" },
   { key: "usRate", label: "미국채 10년물" },
   { key: "usdKrw", label: "원달러" },
   { key: "gold", label: "금" },
@@ -27,9 +28,9 @@ const EVIDENCE_LABELS: { key: IndicatorKey; label: string }[] = [
   { key: "kospi", label: "코스피" },
 ];
 
-function formatChange(changePct: number): string {
+function formatChange(changePct: number, unit = "%"): string {
   const sign = changePct >= 0 ? "+" : "";
-  return `${sign}${changePct.toFixed(2)}%`;
+  return `${sign}${changePct.toFixed(2)}${unit}`;
 }
 
 export function SeasonCard({ result }: { result: SeasonResult }) {
@@ -51,7 +52,7 @@ export function SeasonCard({ result }: { result: SeasonResult }) {
             </tr>
           </thead>
           <tbody>
-            {EVIDENCE_LABELS.map(({ key, label }) => {
+            {EVIDENCE_LABELS.map(({ key, label, changeUnit }) => {
               const reading = result.evidence[key];
               return (
                 <tr key={key} className="border-b last:border-0">
@@ -63,7 +64,7 @@ export function SeasonCard({ result }: { result: SeasonResult }) {
                       reading.changePct >= 0 ? "text-muted-foreground" : "text-destructive"
                     )}
                   >
-                    {formatChange(reading.changePct)}
+                    {formatChange(reading.changePct, changeUnit)}
                   </td>
                   <td className="py-1.5 text-center">{SIGNAL_EMOJI[reading.signal]}</td>
                 </tr>

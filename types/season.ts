@@ -9,6 +9,7 @@ export interface IndicatorReading {
 }
 
 export type IndicatorKey =
+  | "cpi"
   | "usRate"
   | "usdKrw"
   | "gold"

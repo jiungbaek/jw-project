@@ -1,7 +1,8 @@
 import type { IndicatorKey, IndicatorReading, Season, SeasonResult, Signal } from "@/types/season";
 import { fetchQuote } from "@/lib/yahoo";
+import { fetchCpiYoY } from "@/lib/fred";
 
-type IndicatorKind = "rate" | "fx" | "commodity" | "equity";
+type IndicatorKind = "rate" | "fx" | "commodity" | "equity" | "inflation";
 
 interface IndicatorSpec {
   key: IndicatorKey;
@@ -21,11 +22,14 @@ const INDICATORS: IndicatorSpec[] = [
 ];
 
 // 이 범위(%) 안의 일간 변동은 방향성 없음(중립)으로 본다.
+// CPI는 월간 지표라 전월 대비 YoY 변화(%p)가 작으므로 별도의 좁은 밴드를 쓴다.
 const NEUTRAL_BAND = 0.15;
+const INFLATION_NEUTRAL_BAND = 0.05;
 
-// 신호등 기준: 지수는 상승이 투자 환경에 유리(good), 금리·환율·유가·금은 상승이 부담(bad).
+// 신호등 기준: 지수는 상승이 투자 환경에 유리(good), 물가·금리·환율·유가·금은 상승이 부담(bad).
 export function toSignal(kind: IndicatorKind, changePct: number): Signal {
-  if (Math.abs(changePct) < NEUTRAL_BAND) return "neutral";
+  const band = kind === "inflation" ? INFLATION_NEUTRAL_BAND : NEUTRAL_BAND;
+  if (Math.abs(changePct) < band) return "neutral";
   const up = changePct > 0;
   if (kind === "equity") return up ? "good" : "bad";
   return up ? "bad" : "good";
@@ -41,7 +45,7 @@ export function judgeSeason(evidence: Record<IndicatorKey, IndicatorReading>): S
     (sum, key) => sum + SIGNAL_SCORE[evidence[key].signal],
     0
   );
-  const macroScore = (["usRate", "usdKrw", "gold", "wti"] as const).reduce(
+  const macroScore = (["cpi", "usRate", "usdKrw", "gold", "wti"] as const).reduce(
     (sum, key) => sum + SIGNAL_SCORE[evidence[key].signal],
     0
   );
@@ -73,16 +77,24 @@ function buildSummary(season: Season, evidence: Record<IndicatorKey, IndicatorRe
   const equityGood = (["sp500", "nasdaq", "kospi"] as const).filter(
     (key) => evidence[key].signal === "good"
   ).length;
-  const macroGood = (["usRate", "usdKrw", "gold", "wti"] as const).filter(
+  const macroGood = (["cpi", "usRate", "usdKrw", "gold", "wti"] as const).filter(
     (key) => evidence[key].signal === "good"
   ).length;
-  return `지수 3개 중 ${equityGood}개, 매크로 지표 4개 중 ${macroGood}개가 우호 신호입니다. ${SEASON_SUMMARY[season]}`;
+  return `지수 3개 중 ${equityGood}개, 매크로 지표 5개 중 ${macroGood}개가 우호 신호입니다. ${SEASON_SUMMARY[season]}`;
 }
 
 export async function getSeasonResult(): Promise<SeasonResult> {
-  const quotes = await Promise.all(INDICATORS.map((spec) => fetchQuote(spec.symbol)));
+  const [cpi, ...quotes] = await Promise.all([
+    fetchCpiYoY(),
+    ...INDICATORS.map((spec) => fetchQuote(spec.symbol)),
+  ]);
 
   const evidence = {} as Record<IndicatorKey, IndicatorReading>;
+  evidence.cpi = {
+    value: `${cpi.yoy.toFixed(1)}%`,
+    changePct: cpi.deltaPp,
+    signal: toSignal("inflation", cpi.deltaPp),
+  };
   INDICATORS.forEach((spec, i) => {
     const quote = quotes[i];
     evidence[spec.key] = {
