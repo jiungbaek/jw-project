@@ -78,7 +78,7 @@
 
 ---
 
-### Task 2: 메인 페이지 + 결과 페이지 정상 판정 UI
+### Task 2: 메인 페이지 + 결과 페이지 정상 판정 UI ✅ 완료 (커밋 29b7141, 실제 Gemini 호출로 브라우저 확인)
 
 - **담당 시나리오**: Scenario 1 (full — UI)
 - **크기**: M (5 파일)
@@ -102,10 +102,10 @@
 
 ---
 
-### Checkpoint: Task 1-2 이후
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 메인 → 결과 페이지 정상 판정 흐름이 실제 브라우저에서 end-to-end로 동작 (Browser MCP로 실제 `GEMINI_API_KEY` 사용해 1회 확인, 증거는 `artifacts/investment-4-seasons/evidence/checkpoint-1.png`)
+### Checkpoint: Task 1-2 이후 ✅ 완료
+- [x] 모든 테스트 통과: `bun run test` (13/13)
+- [x] 빌드 성공: `bun run build`
+- [x] 메인 → 결과 페이지 정상 판정 흐름이 실제 브라우저에서 end-to-end로 동작 (Browser MCP, 실제 Gemini 호출로 "여름" 판정 + 실제 CPI/금리/S&P500 근거 확인)
 
 ---
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LoaderCircleIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SeasonCard } from "@/components/season/season-card";
+import { SeasonError } from "@/components/season/season-error";
 import type { SeasonResult } from "@/types/season";
 
 type State =
@@ -13,6 +14,7 @@ type State =
 
 export default function ResultsPage() {
   const [state, setState] = useState<State>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let ignore = false;
@@ -33,7 +35,7 @@ export default function ResultsPage() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [attempt]);
 
   return (
     <div className="@container max-w-md mx-auto p-6">
@@ -50,11 +52,7 @@ export default function ResultsPage() {
       )}
       {state.status === "success" && <SeasonCard result={state.result} />}
       {state.status === "error" && (
-        <Card>
-          <CardContent className="py-12 text-center text-sm">
-            지금 계절을 파악하기 어려워요
-          </CardContent>
-        </Card>
+        <SeasonError onRetry={() => setAttempt((n) => n + 1)} />
       )}
     </div>
   );
