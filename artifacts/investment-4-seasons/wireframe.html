@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe: investment-4-seasons</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root {
+    --w-bg: #f5f5f5;
+    --w-border: #ccc;
+    --w-text: #555;
+    --w-muted: #aaa;
+    --w-fill: #eee;
+  }
+
+  * {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--w-text);
+  }
+
+  body { background: var(--w-bg); }
+
+  /* Screen nav */
+  nav { position: sticky; top: 0; z-index: 40; background: var(--w-bg); border-bottom: 1px solid var(--w-border); }
+  nav button { cursor: pointer; font-size: 13px; }
+  nav button:hover { background: var(--w-fill); border-radius: 4px; }
+  nav button.active { font-weight: bold; border-bottom: 2px solid var(--w-text); }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Viewport toggle */
+  .vp-toggle button {
+    font-size: 12px; padding: 2px 8px;
+    border: 1px solid var(--w-border); cursor: pointer; background: white;
+  }
+  .vp-toggle button:first-child { border-radius: 4px 0 0 4px; }
+  .vp-toggle button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+  .vp-toggle button.active { background: var(--w-text); color: white; }
+
+  /* Mobile viewport frame */
+  body.viewport-mobile .screen-content {
+    max-width: 375px !important;
+    margin: 24px auto !important;
+    border: 2px solid var(--w-border);
+    border-radius: 24px;
+    min-height: 667px;
+    background: white;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px 16px !important;
+  }
+
+  /* Screen Notes */
+  .screen-notes {
+    background: #fffde7;
+    border-left: 3px solid #ffd54f;
+    padding: 12px 16px;
+    margin-top: 24px;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  .screen-notes summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    color: #b0a050;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .screen-notes p { margin: 6px 0 2px; color: #777; }
+  .screen-notes ul { margin: 4px 0 0 16px; padding: 0; color: #777; }
+  .screen-notes li { margin: 2px 0; }
+
+  /* Scenario toggle (within a screen) */
+  .scenario-toggle { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .scenario-toggle button {
+    font-size: 11px; padding: 4px 10px; border: 1px solid var(--w-border);
+    border-radius: 999px; background: white; cursor: pointer;
+  }
+  .scenario-toggle button.active { background: var(--w-text); color: white; }
+  .scenario-state { display: none; }
+  .scenario-state.active { display: block; }
+
+  /* Simple card */
+  .w-card { border: 1px solid var(--w-border); border-radius: 8px; background: white; }
+  .w-badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border: 1px solid var(--w-border); border-radius: 999px; background: var(--w-fill);
+  }
+</style>
+</head>
+<body class="p-0 m-0 viewport-mobile">
+
+<nav class="flex items-center gap-4 px-6 py-2">
+  <span class="text-xs" style="color:var(--w-muted)">wireframe</span>
+  <button id="nav-0" onclick="show(0)" class="px-2 py-1">메인</button>
+  <button id="nav-1" onclick="show(1)" class="px-2 py-1">결과</button>
+  <div class="vp-toggle flex ml-auto">
+    <button id="vp-desktop" onclick="setViewport('desktop')">Desktop</button>
+    <button id="vp-mobile" onclick="setViewport('mobile')" class="active">Mobile</button>
+  </div>
+</nav>
+
+<!-- ============ 화면 0: 메인 ============ -->
+<div id="screen-0" class="screen" data-scenario="1,2,3">
+  <div class="screen-content @container max-w-6xl mx-auto p-6">
+
+    <h2 class="text-lg font-bold mb-5" style="color:var(--w-muted); border-bottom:1px solid var(--w-border); padding-bottom:8px;">
+      메인
+    </h2>
+
+    <div class="flex flex-col items-center justify-center text-center gap-6 py-10 @md:py-24">
+      <div class="text-4xl">
+        <i data-lucide="cloud-sun"></i>
+      </div>
+      <h1 class="text-2xl font-bold" style="color:var(--w-text)">AI 투자 4계절 웨더캐스터</h1>
+      <p class="text-sm max-w-xs @md:max-w-md" style="color:var(--w-muted)">
+        오늘의 CPI·금리·주요 지수를 AI가 실시간으로 읽고,<br>지금이 투자의 어느 계절인지 알려드려요.
+      </p>
+
+      <button onclick="show(1)" class="w-card px-6 py-3 font-bold text-sm flex items-center gap-2" style="background:var(--w-text); color:white; border:none;">
+        <i data-lucide="sparkles" style="color:white"></i>
+        오늘의 계절 확인하기
+      </button>
+
+      <p class="text-xs" style="color:var(--w-muted)">재미로 보는 콘텐츠예요. 특정 종목 추천은 없어요.</p>
+    </div>
+
+    <div class="screen-notes">
+      <details open>
+        <summary>Notes</summary>
+        <p>서비스 소개 + 판정 시작 진입점. 로그인/이력 없음.</p>
+        <ul>
+          <li>트리거: 앱 최초 진입, 또는 결과 화면에서 "다시 확인하기"로 복귀</li>
+          <li>인터랙션: "오늘의 계절 확인하기" 클릭 → 결과 화면으로 이동, 매번 새로 판정 요청</li>
+          <li>전환: 버튼 클릭 → 결과 화면(로딩 상태로 시작)</li>
+        </ul>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 화면 1: 결과 ============ -->
+<div id="screen-1" class="screen" data-scenario="1,2,3">
+  <div class="screen-content @container max-w-6xl mx-auto p-6">
+
+    <h2 class="text-lg font-bold mb-5" style="color:var(--w-muted); border-bottom:1px solid var(--w-border); padding-bottom:8px;">
+      결과
+    </h2>
+
+    <div class="scenario-toggle">
+      <button id="sc-1" onclick="showScenario('1')" class="active">scenario-1: 정상 판정</button>
+      <button id="sc-2" onclick="showScenario('2')">scenario-2: 로딩</button>
+      <button id="sc-3" onclick="showScenario('3')">scenario-3: 에러</button>
+    </div>
+
+    <!-- scenario-1: 정상 판정 완료 -->
+    <div class="scenario-state active" data-scenario="scenario-1">
+      <div class="w-card p-5 flex flex-col gap-4 @md:p-8">
+        <div class="flex flex-col items-center text-center gap-2">
+          <span class="w-badge">오늘의 국면</span>
+          <div class="text-3xl">🍂</div>
+          <div class="text-2xl font-bold" style="color:var(--w-text)">가을</div>
+          <p class="text-xs" style="color:var(--w-muted)">성장 둔화 신호, 지수 변동성 확대 국면</p>
+        </div>
+
+        <div class="w-card p-4 flex flex-col gap-2" style="background:var(--w-fill); border:none;">
+          <div class="text-xs font-bold" style="color:var(--w-muted)">판정 근거</div>
+          <div class="text-sm">· CPI: 둔화세 지속</div>
+          <div class="text-sm">· 금리: 동결 기조 유지</div>
+          <div class="text-sm">· 지수: 상승 둔화, 변동성 확대</div>
+        </div>
+
+        <div class="w-card p-4 flex flex-col gap-2">
+          <div class="text-xs font-bold" style="color:var(--w-muted)">가을 국면 자산 경향</div>
+          <p class="text-sm">금리 상승기에는 통상 성장주보다 가치주·에너지 섹터가 상대적으로 견조한 흐름을 보이는 경향이 있습니다. 금 같은 안전자산도 주목받는 시기입니다.</p>
+        </div>
+
+        <button onclick="show(0)" class="w-card px-5 py-2.5 text-sm font-bold self-center flex items-center gap-2">
+          <i data-lucide="rotate-ccw"></i>
+          다시 확인하기
+        </button>
+      </div>
+    </div>
+
+    <!-- scenario-2: 로딩 -->
+    <div class="scenario-state" data-scenario="scenario-2">
+      <div class="w-card p-5 flex flex-col items-center justify-center text-center gap-4 @md:p-8" style="min-height: 280px;">
+        <i data-lucide="loader-circle"></i>
+        <div class="text-sm font-bold">오늘의 계절을 판정하는 중...</div>
+        <p class="text-xs" style="color:var(--w-muted)">CPI·금리·주요 지수를 실시간으로 확인하고 있어요</p>
+      </div>
+    </div>
+
+    <!-- scenario-3: 에러 -->
+    <div class="scenario-state" data-scenario="scenario-3">
+      <div class="w-card p-5 flex flex-col items-center justify-center text-center gap-4 @md:p-8" style="min-height: 280px;">
+        <i data-lucide="cloud-off"></i>
+        <div class="text-sm font-bold">지금 계절을 파악하기 어려워요</div>
+        <p class="text-xs" style="color:var(--w-muted)">잠시 후 다시 시도해주세요</p>
+        <button onclick="showScenario('2')" class="w-card px-5 py-2.5 text-sm font-bold flex items-center gap-2">
+          <i data-lucide="refresh-cw"></i>
+          다시 시도
+        </button>
+      </div>
+    </div>
+
+    <div class="screen-notes">
+      <details open>
+        <summary>Notes</summary>
+        <p>같은 화면 위에서 로딩 → 성공/실패 상태만 갈아끼운다. 레이아웃 구조는 3개 상태 모두 동일.</p>
+        <ul>
+          <li>트리거: 메인의 "오늘의 계절 확인하기" 클릭 → scenario-2(로딩)로 시작 → scenario-1(성공) 또는 scenario-3(실패)로 전환</li>
+          <li>인터랙션: scenario-1의 "다시 확인하기" → 메인으로 복귀 / scenario-3의 "다시 시도" → scenario-2(로딩)로 재요청</li>
+          <li>전환: 재요청 시 이전 결과를 재사용하지 않고 항상 새 로딩부터 시작 (spec.md 시나리오 3)</li>
+        </ul>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var currentScreen = 0;
+var screenIds = [];
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('nav button[id^="nav-"]').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('nav-' + id).classList.add('active');
+  currentScreen = screenIds.indexOf(id);
+}
+
+function showScenario(n) {
+  document.querySelectorAll('.scenario-state').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelector('.scenario-state[data-scenario="scenario-' + n + '"]').classList.add('active');
+  document.querySelectorAll('.scenario-toggle button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('sc-' + n).classList.add('active');
+}
+
+function setViewport(mode) {
+  document.body.classList.remove('viewport-mobile', 'viewport-desktop');
+  document.body.classList.add('viewport-' + mode);
+  document.querySelectorAll('.vp-toggle button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('vp-' + mode).classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('nav button[id^="nav-"]').forEach(function(b) {
+    screenIds.push(parseInt(b.id.replace('nav-', '')));
+  });
+  var first = document.querySelector('nav button[id^="nav-"]');
+  if (first) first.click();
+  lucide.createIcons();
+});
+</script>
+</body>
+</html>
