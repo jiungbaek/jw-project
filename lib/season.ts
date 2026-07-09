@@ -7,7 +7,7 @@ import type {
   Signal,
 } from "@/types/season";
 import { fetchQuote } from "@/lib/yahoo";
-import { fetchCpiYoY } from "@/lib/fred";
+import { fetchCpiYoY } from "@/lib/cpi";
 
 type IndicatorKind = "rate" | "fx" | "commodity" | "equity" | "inflation";
 

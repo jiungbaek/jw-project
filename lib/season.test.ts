@@ -7,7 +7,7 @@ const { fetchQuoteMock, fetchCpiYoYMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/yahoo", () => ({ fetchQuote: fetchQuoteMock }));
-vi.mock("@/lib/fred", () => ({ fetchCpiYoY: fetchCpiYoYMock }));
+vi.mock("@/lib/cpi", () => ({ fetchCpiYoY: fetchCpiYoYMock }));
 
 import { getSeasonResult, judgeSeason, toSignal } from "./season";
 
